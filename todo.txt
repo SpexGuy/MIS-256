@@ -1,5 +1,10 @@
 TODO List:
 
+Website:
+[ ] Make a landing page at marble.computer/index.html which redirects to various parts of the project
+[ ] Create a favicon.ico
+
+Emulator:
 [ ] Add "instructions executed" stat
 [ ] Make initial memory part of the program text so it can be copied and pasted
 [ ] Allow seeks to specify two labels from memory, and seek the difference between them
@@ -13,4 +18,4 @@ TODO List:
 [ ] Make layout scale to different screen sizes
 [ ] Make layout work in portrait
 [ ] Mobile support?
-[ ] Make a landing page at marble.computer/index.html which redirects to various parts of the project
+[ ] Add banner that links to github
