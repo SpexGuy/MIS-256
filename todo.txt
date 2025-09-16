@@ -8,6 +8,8 @@ TODO List:
 [ ] Save and load user programs in local storage
 [ ] Build a way to share cool programs
 [ ] Improve layout of "Previous Screens"
+[ ] Show time, delta, and instruction count for each screen rendered
+[ ] Show Avg FPH (Frames Per Hour)
 [ ] Make layout scale to different screen sizes
 [ ] Make layout work in portrait
 [ ] Mobile support?
