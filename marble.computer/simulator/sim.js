@@ -75,6 +75,7 @@ const STEP_STORE = 8;
 const STEP_DISPLAY = 16;
 const STEP_FLUSH_CONDITION = 32;
 const STEP_ADJUST_PTR = 64;
+const NUM_STEPS = 7;
 
 const step_durations = [
     3, // Fetch Data: 3s
@@ -86,6 +87,8 @@ const step_durations = [
     2, // Adjust Ptr: 2s
 ];
 
+var time_into_instruction = 0;
+
 function determineSteps(instruction) {
     var steps = STEP_FETCH_DATA | STEP_DECODE_INSTRUCTION;
     if ((instruction & INST_TYPE_MASK) == INST_TYPE_CTRL) {
@@ -96,7 +99,7 @@ function determineSteps(instruction) {
     } else {
         steps |= STEP_DISPATCH_RALU;
         if ((instruction & INST_REG_PLANE_MASK) == INST_REG_PLANE_READ) {
-            if ((instruction & INST_REG_READ_DEST_MASK) == INST_REG_READ_DEST_DISPLAY) {
+            if ((instruction & INST_REG_READ_DEST_MASK) == INST_REG_READ_DEST_DISP) {
                 steps |= STEP_DISPLAY;
             } else {
                 steps |= STEP_STORE;
@@ -106,6 +109,19 @@ function determineSteps(instruction) {
             }
         }
     }
+    return steps;
+}
+
+function determineInstTime(instruction) {
+    const steps = determineSteps(instruction);
+    var time = 0;
+    for (var i = 0; i < NUM_STEPS; i += 1) {
+        const bit = 1 << i;
+        if (steps & bit) {
+            time += step_durations[i];
+        }
+    }
+    return time;
 }
 
 function makeParser(code) {
@@ -575,20 +591,73 @@ function updateDisplayedState() {
         updateScreenRows(screen, rows);
         screen_history.insertBefore(screen, screen_history.firstChild)
     }
+
+    var inst_steps = 0;
+    if (has_valid_program) {
+        const next_inst = mem[BANK_INST][mem_ptr[BANK_INST]];
+        inst_steps = determineSteps(next_inst);
+    }
+
+    var time_left = time_into_instruction;
+    for (var i = 0; i < NUM_STEPS; i += 1) {
+        const bit = 1 << i;
+        const bar = document.getElementById("exec-step-"+i.toString());
+        if (inst_steps & bit) {
+            bar.classList.remove("disabled");
+            if (time_left < step_durations[i]) {
+                const percent = 100 * time_left / step_durations[i];
+                bar.firstElementChild.style.width = percent + "%";
+                time_left = 0;
+            } else {
+                bar.firstElementChild.style.width = "100%";
+                time_left -= step_durations[i];
+            }
+        } else {
+            bar.classList.add("disabled");
+        }
+    }
 }
 
-var runTimerId = 0;
+var last_tick_time_ms;
 
 function runStep() {
-    cancelRunTimer();
-
     if (!has_valid_program) return;
     if (run_type == NOT_RUNNING) return;
 
-    runTimerId = setTimeout(runStep, 10000/speed);
+    const tick_time_ms = Date.now();
+    const delta_ms = Math.max(0, Math.min(tick_time_ms - last_tick_time_ms, 100));
+    last_tick_time_ms = tick_time_ms;
 
-    execInst();
+    var speed = Number(document.getElementById("ctrl-speed").value);
+    if (typeof speed !== "number" || isNaN(speed)) speed = 1;
+    speed = Math.min(Math.max(speed, 1), 100);
 
+    const elapsed_time = speed * delta_ms / 1000;
+
+    time_into_instruction += elapsed_time;
+
+    checkBreakpoints();
+
+    while (run_type != NOT_RUNNING) {
+        const next_inst = mem[BANK_INST][mem_ptr[BANK_INST]];
+        const inst_time = determineInstTime(next_inst);
+        if (time_into_instruction >= inst_time) {
+            execInst();
+            checkBreakpoints();
+            time_into_instruction -= inst_time;
+        } else {
+            break;
+        }
+    }
+
+    updateDisplayedState();
+
+    if (run_type != NOT_RUNNING) {
+        window.requestAnimationFrame(runStep);
+    }
+}
+
+function checkBreakpoints() {
     // Check breakpoints
     if (run_type != NOT_RUNNING) {
         if (inst_breakpoints & (1 << mem_ptr[BANK_INST])) {
@@ -606,22 +675,20 @@ function runStep() {
                 state = "Paused (Memory Breakpoint)"
             }
         }
-    }
-
-    updateDisplayedState();
-
-    var speed = Number(document.getElementById("ctrl-speed").value);
-    if (typeof speed !== "number" || isNaN(speed)) speed = 1;
-    speed = Math.min(Math.max(speed, 1), 100);
+    }    
 }
 
-function cancelRunTimer() {
-    clearTimeout(runTimerId);
-    runTimerId = 0;
+function startRunning() {
+    last_tick_time_ms = Date.now();
+    window.requestAnimationFrame(runStep);
 }
 
 function cancelRun() {
-    cancelRunTimer();
+    run_type = NOT_RUNNING;
+    time_into_instruction = 0;
+}
+
+function pauseRun() {
     run_type = NOT_RUNNING;
 }
 
@@ -633,6 +700,8 @@ function btnStep() {
 
     execInst();
 
+    time_into_instruction = 0;
+
     updateDisplayedState();
 }
 
@@ -641,7 +710,7 @@ function btnRun() {
 
     run_type = RUN_FOREVER;
     state = "Running";
-    runStep();
+    startRunning();
 }
 
 function btnNextFrame() {
@@ -649,7 +718,7 @@ function btnNextFrame() {
 
     run_type = RUN_TO_FRAME;
     state = "Running to next frame"
-    runStep();
+    startRunning();
 }
 
 function btnNextDisplay() {
@@ -657,14 +726,14 @@ function btnNextDisplay() {
 
     run_type = RUN_TO_DISPLAY;
     state = "Running to next display"
-    runStep();
+    startRunning();
 }
 
 function btnPause() {
     if (!has_valid_program) return;
 
     if (run_type != NOT_RUNNING) {
-        cancelRun();
+        pauseRun();
         state = "Paused"
         updateDisplayedState();
     }
