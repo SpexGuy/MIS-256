@@ -61,7 +61,7 @@
     <td style="vertical-align:top">
         <h3>Running State</h3>
         <button type="button" id="ctrl-reset" onclick="btnReset()">Reset</button><button type="button" id="ctrl-step" onclick="btnStep()">Step</button><button type="button" id="ctrl-pause" onclick="btnPause()">Pause</button><button type="button" id="ctrl-run" onclick="btnRun()">Run</button><button type="button" id="ctrl-nextframe" onclick="btnNextFrame()">Run to Frame</button><button type="button" id="ctrl-nextdisplay" onclick="btnNextDisplay()">Run to Display</button>
-        Speed <input type="number" id="ctrl-speed" value="4.0"><input type="range" min="1.0" max="20.0" value="4.0">
+        Speed <input type="number" id="ctrl-speed" value="10">
         <br/>
         <b>State:</b> <span id="ctrl-state">Waiting for Program</span><br/>
         <table><tr><th>Program:</th><th>Memory:</th><th>Other State:</th></tr>
@@ -106,6 +106,7 @@
             <tr><th>Condition: </th><td id="ctrl-condition">false</td></tr>
             <tr><th>Data Ptr: </th><td id="ctrl-dataptr">0</td></tr>
             <tr><th>Inst Ptr: </th><td id="ctrl-instptr">0</td></tr>
+            <tr><th>Uptime: </th><td id="exec-uptime">00.0</td></tr>
             <tr><th colspan="2">Execution</th></tr>
             <tr><td colspan="2">
                 <div id="exec-step-0" class="exec-background disabled"><div class="exec-progress"></div><div class="exec-label">Fetch Data</div></div>

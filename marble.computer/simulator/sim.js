@@ -88,6 +88,7 @@ const step_durations = [
 ];
 
 var time_into_instruction = 0;
+var total_time_elapsed = 0;
 
 function determineSteps(instruction) {
     var steps = STEP_FETCH_DATA | STEP_DECODE_INSTRUCTION;
@@ -616,6 +617,27 @@ function updateDisplayedState() {
             bar.classList.add("disabled");
         }
     }
+
+    const uptime_elem = document.getElementById("exec-uptime");
+    var uptime_seconds = total_time_elapsed + time_into_instruction;
+    const has_days = uptime_seconds > 24 * 60 * 60;
+    const has_hours = uptime_seconds > 60 * 60;
+    const has_minutes = uptime_seconds > 60;
+    var uptime_str = "";
+    if (has_days) {
+        uptime_str += Math.floor(uptime_seconds / (24 * 60 * 60)).toString() + "d ";
+        uptime_seconds %= (24 * 60 * 60);
+    }
+    if (has_hours) {
+        uptime_str += Math.floor(uptime_seconds / (60 * 60)).toString().padStart(2, "0") + ":";
+        uptime_seconds %= (60 * 60);
+    }
+    if (has_minutes) {
+        uptime_str += Math.floor(uptime_seconds / (60)).toString().padStart(2, "0") + ":";
+        uptime_seconds %= (60);
+    }
+    uptime_str += uptime_seconds.toFixed(1).padStart(4, "0");
+    uptime_elem.innerText = uptime_str;
 }
 
 var last_tick_time_ms;
@@ -630,21 +652,20 @@ function runStep() {
 
     var speed = Number(document.getElementById("ctrl-speed").value);
     if (typeof speed !== "number" || isNaN(speed)) speed = 1;
-    speed = Math.min(Math.max(speed, 1), 100);
+    speed = Math.min(Math.max(speed, 1), 10000);
 
     const elapsed_time = speed * delta_ms / 1000;
 
     time_into_instruction += elapsed_time;
 
-    checkBreakpoints();
-
     while (run_type != NOT_RUNNING) {
         const next_inst = mem[BANK_INST][mem_ptr[BANK_INST]];
         const inst_time = determineInstTime(next_inst);
         if (time_into_instruction >= inst_time) {
+            time_into_instruction -= inst_time;
+            total_time_elapsed += inst_time;
             execInst();
             checkBreakpoints();
-            time_into_instruction -= inst_time;
         } else {
             break;
         }
@@ -698,6 +719,9 @@ function btnStep() {
     cancelRun();
     state = "Paused (Step)"
 
+    const next_inst = mem[BANK_INST][mem_ptr[BANK_INST]];
+    const inst_time = determineInstTime(next_inst);
+    total_time_elapsed += inst_time;
     execInst();
 
     time_into_instruction = 0;
@@ -761,8 +785,9 @@ function btnReset() {
     if (!has_valid_program) return;
 
     cancelRun();
+    state = "Paused (Reset)";
 
-    state = "Paused (Reset)"
+    total_time_elapsed = 0;
 
     register = 0;
     condition = false;

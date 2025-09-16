@@ -99,12 +99,12 @@ table {
 }
 
 .mem-breakpoint {
-    background-color: rgb(255, 27, 27);
+    background-color: rgb(189, 14, 14);
     font-weight: bold;
 }
 
 .mem-pointee {
-    background-color: rgb(18, 204, 255);
+    background-color: rgb(0, 137, 175);
     border-color: rgb(18, 204, 255);
 }
 
