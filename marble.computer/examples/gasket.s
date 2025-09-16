@@ -1,0 +1,34 @@
+Start:
+  ONES
+  DEC
+  NOT
+  DISPLAY
+Reprise:
+  STORE
+  ADD
+  OR
+  DISPLAY
+  BRANCH :Start
+  NOT
+  DEC
+  DEC
+  NOT
+  DISPLAY
+  STORE
+  ADD
+  OR
+  DISPLAY
+  NOT
+  DEC
+  DEC
+  NOT
+  DISPLAY
+  STORE
+  ADD.I
+  STORE
+  SEEK -1
+  ADD.I
+  DISPLAY
+  ADD.I
+  DISPLAY
+  JUMP :Reprise
