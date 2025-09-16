@@ -1,6 +1,28 @@
 
 body {
     font-family: Consolas, monospace;
+    background-color: #202020;
+    color: #d6d6d6;
+}
+
+a:link {
+    color: #6c99bb;
+}
+
+a:visited {
+    color:#9e86c8;
+}
+
+input, textarea {
+    background-color: #2e2e2e;
+    color: #d6d6d6;
+    border: 0;
+}
+
+button {
+    background-color: #2e2e2e;
+    border-color: #2e2e2e;
+    color: #d6d6d6;
 }
 
 th, td {
@@ -12,6 +34,66 @@ th, td {
 
 table {
     border-spacing: 0;
+}
+
+.exec-background {
+    background-color: #2e2e2e;
+    border-color: magenta;
+    border-width: 1px;
+    border-style: solid;
+
+    position: relative;
+    height: 24px;
+    border-radius: 8px;
+    margin-bottom: 2px;
+}
+
+.exec-label {
+    position:absolute;
+    top: 0;
+    left: 10px;
+    height: 100%;
+    width: 100%;
+    line-height: 24px;
+}
+
+.exec-progress {
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 30%;
+    height: 100%;
+    border-radius: 8px 0px 0px 8px;
+}
+
+#exec-step-0.exec-background:not(.disabled) { border-color: #FF0000 }
+#exec-step-0:not(.disabled) .exec-progress { background-color: #8F1010 }
+#exec-step-1.exec-background:not(.disabled) { border-color: #FF7F00 }
+#exec-step-1:not(.disabled) .exec-progress { background-color: #8F4F10 }
+#exec-step-2.exec-background:not(.disabled) { border-color: #FFFF00 }
+#exec-step-2:not(.disabled) .exec-progress { background-color: #8F8F10 }
+#exec-step-3.exec-background:not(.disabled) { border-color: #7FFF00 }
+#exec-step-3:not(.disabled) .exec-progress { background-color: #4F8F10 }
+#exec-step-4.exec-background:not(.disabled) { border-color: #00FF00 }
+#exec-step-4:not(.disabled) .exec-progress { background-color: #108F10 }
+#exec-step-5.exec-background:not(.disabled) { border-color: #00FF7F }
+#exec-step-5:not(.disabled) .exec-progress { background-color: #108F4F }
+#exec-step-6.exec-background:not(.disabled) { border-color: #00FFFF }
+#exec-step-6:not(.disabled) .exec-progress { background-color: #108F8F }
+#exec-step-7.exec-background:not(.disabled) { border-color: #007FFF }
+#exec-step-7:not(.disabled) .exec-progress { background-color: #104F8F }
+
+.disabled .exec-label {
+    color: #7f7f7f;
+}
+
+.disabled.exec-background {
+    background-color: #252525;
+    border-color: #2e2e2e;
+}
+
+.disabled .exec-progress {
+    display: none;
 }
 
 .mem-address {

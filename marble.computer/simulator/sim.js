@@ -24,6 +24,8 @@ const INST_REG_READ_SHIFT_SHIFT = 1;
 const INST_REG_TOGGLE_CARRY_MASK = 0x08;
 
 const INST_CTRL_BANK_MASK = 0x40;
+const INST_CTRL_BANK_INST = 0x00;
+const INST_CTRL_BANK_MEM = 0x40;
 const INST_CTRL_CONDITIONAL_MASK = 0x20;
 const INST_CTRL_DELTA_MASK = 0x1F;
 const INST_CTRL_DELTA_SHIFT = 0;
@@ -65,6 +67,46 @@ var run_type = NOT_RUNNING;
 
 var inst_breakpoints = 0;
 var mem_breakpoints = 0;
+
+const STEP_FETCH_DATA = 1;
+const STEP_DECODE_INSTRUCTION = 2;
+const STEP_DISPATCH_RALU = 4;
+const STEP_STORE = 8;
+const STEP_DISPLAY = 16;
+const STEP_FLUSH_CONDITION = 32;
+const STEP_ADJUST_PTR = 64;
+
+const step_durations = [
+    3, // Fetch Data: 3s
+    2, // Decode Instruction: 2s
+    1, // Dispatch RALU: 1s
+    6, // Store: 6s
+    2, // Display: 2s
+    2, // Flush Condition: 2s
+    2, // Adjust Ptr: 2s
+];
+
+function determineSteps(instruction) {
+    var steps = STEP_FETCH_DATA | STEP_DECODE_INSTRUCTION;
+    if ((instruction & INST_TYPE_MASK) == INST_TYPE_CTRL) {
+        steps |= STEP_ADJUST_PTR;
+        if (instruction & INST_CTRL_CONDITIONAL_MASK) {
+            steps |= STEP_FLUSH_CONDITION;
+        }
+    } else {
+        steps |= STEP_DISPATCH_RALU;
+        if ((instruction & INST_REG_PLANE_MASK) == INST_REG_PLANE_READ) {
+            if ((instruction & INST_REG_READ_DEST_MASK) == INST_REG_READ_DEST_DISPLAY) {
+                steps |= STEP_DISPLAY;
+            } else {
+                steps |= STEP_STORE;
+                if (instruction & INST_REG_INCREMENT_MASK) {
+                    steps |= STEP_ADJUST_PTR;
+                }
+            }
+        }
+    }
+}
 
 function makeParser(code) {
     return {
@@ -228,10 +270,10 @@ const instructions = {
     "store"       : INST_TYPE_REG | INST_REG_SOURCE_FF     | INST_REG_PLANE_READ | INST_REG_READ_DEST_MEM,
     "display_and" : INST_TYPE_REG | INST_REG_SOURCE_MEMORY | INST_REG_PLANE_READ | INST_REG_READ_DEST_DISP,
     "display"     : INST_TYPE_REG | INST_REG_SOURCE_FF     | INST_REG_PLANE_READ | INST_REG_READ_DEST_DISP,
-    "jump"        : INST_TYPE_CTRL,
-    "branch"      : INST_TYPE_CTRL | INST_CTRL_CONDITIONAL_MASK,
-    "seek"        : INST_TYPE_CTRL | INST_CTRL_BANK_MASK,
-    "select"      : INST_TYPE_CTRL | INST_CTRL_BANK_MASK | INST_CTRL_CONDITIONAL_MASK,
+    "jump"        : INST_TYPE_CTRL | INST_CTRL_BANK_INST,
+    "branch"      : INST_TYPE_CTRL | INST_CTRL_BANK_INST | INST_CTRL_CONDITIONAL_MASK,
+    "seek"        : INST_TYPE_CTRL | INST_CTRL_BANK_MEM ,
+    "select"      : INST_TYPE_CTRL | INST_CTRL_BANK_MEM  | INST_CTRL_CONDITIONAL_MASK,
 }
 
 function consumeInstruction(parser) {

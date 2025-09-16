@@ -60,12 +60,7 @@
     </td>
     <td style="vertical-align:top">
         <h3>Running State</h3>
-        <button type="button" id="ctrl-reset" onclick="btnReset()">Reset</button>
-        <button type="button" id="ctrl-step" onclick="btnStep()">Step</button>
-        <button type="button" id="ctrl-pause" onclick="btnPause()">Pause</button>
-        <button type="button" id="ctrl-run" onclick="btnRun()">Run</button>
-        <button type="button" id="ctrl-nextframe" onclick="btnNextFrame()">Run to Frame</button>
-        <button type="button" id="ctrl-nextdisplay" onclick="btnNextDisplay()">Run to Display</button>
+        <button type="button" id="ctrl-reset" onclick="btnReset()">Reset</button><button type="button" id="ctrl-step" onclick="btnStep()">Step</button><button type="button" id="ctrl-pause" onclick="btnPause()">Pause</button><button type="button" id="ctrl-run" onclick="btnRun()">Run</button><button type="button" id="ctrl-nextframe" onclick="btnNextFrame()">Run to Frame</button><button type="button" id="ctrl-nextdisplay" onclick="btnNextDisplay()">Run to Display</button>
         Speed <input type="number" id="ctrl-speed" value="4.0"><input type="range" min="1.0" max="20.0" value="4.0">
         <br/>
         <b>State:</b> <span id="ctrl-state">Waiting for Program</span><br/>
@@ -107,10 +102,20 @@
             <tr id="ctrl-mem-row-31"><td class="mem-address">31</td><td id="ctrl-mem-31">0</td></tr>
             </table></td>
         <td style="vertical-align:top"><table>
-            <tr><th>Register: </th><td id="ctrl-register">0</td></tr>
+            <tr><th>Register: </th><td id="ctrl-register">0x00&nbsp;0b00000000&nbsp;&nbsp;&nbsp;0&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;</td></tr>
             <tr><th>Condition: </th><td id="ctrl-condition">false</td></tr>
             <tr><th>Data Ptr: </th><td id="ctrl-dataptr">0</td></tr>
             <tr><th>Inst Ptr: </th><td id="ctrl-instptr">0</td></tr>
+            <tr><th colspan="2">Execution</th></tr>
+            <tr><td colspan="2">
+                <div id="exec-step-0" class="exec-background"><div class="exec-progress"></div><div class="exec-label">Fetch Data</div></div>
+                <div id="exec-step-1" class="exec-background"><div class="exec-progress"></div><div class="exec-label">Decode Instruction</div></div>
+                <div id="exec-step-2" class="exec-background"><div class="exec-progress"></div><div class="exec-label">Dispatch RALU</div></div>
+                <div id="exec-step-3" class="exec-background"><div class="exec-progress"></div><div class="exec-label">Store Data</div></div>
+                <div id="exec-step-4" class="exec-background"><div class="exec-progress"></div><div class="exec-label">Display</div></div>
+                <div id="exec-step-5" class="exec-background"><div class="exec-progress"></div><div class="exec-label">Flush Condition</div></div>
+                <div id="exec-step-6" class="exec-background"><div class="exec-progress"></div><div class="exec-label">Adjust Ptr</div></div>
+            </td></tr>
             <tr><th>Backbuffer:</th><td><button type="button" id="src-togglebackbuffer" onclick="btnToggleBackbuffer()">Toggle</button></td></tr>
             <tr><td colspan="2"><svg viewBox="-0.6 -0.6 8.2 8.2" class="screen">
                 <filter id="blurred"><feGaussianBlur in="SourceGraphic" stdDeviation="0.4" /></filter>
