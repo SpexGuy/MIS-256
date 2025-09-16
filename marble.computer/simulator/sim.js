@@ -628,6 +628,24 @@ function btnPause() {
     }
 }
 
+function loadInitialMemoryFromInputs() {
+    for (let i = 0; i < 32; i++) {
+        const input = document.getElementById("src-mem-" + i);
+        if (input) {
+            let val = input.value.trim();
+            // hex
+            if (val.startsWith("0x") || val.startsWith("0X")) {
+                mem[BANK_DATA][i] = parseInt(val, 16) & 0xFF;
+            }
+            else { // decimal
+                mem[BANK_DATA][i] = parseInt(val, 10) & 0xFF;
+            }
+        } else {
+            mem[BANK_DATA][i] = 0;
+        }
+    }
+}
+
 function btnReset() {
     if (!has_valid_program) return;
 
@@ -638,6 +656,8 @@ function btnReset() {
     register = 0;
     condition = false;
     mem_ptr = [0, 0];
+
+    loadInitialMemoryFromInputs();
 
     complete_screens = [];
     screen_buffer = [];
