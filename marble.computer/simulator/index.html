@@ -90,6 +90,12 @@ CheckerLoop:
 Reset:
   SEEK -8        ; Reset data ptr to 0
   JUMP :MemFrame ; Restart
+
+.data 16          ; Secret data!
+Challenge:        ; shhhhhh
+    0  60 102  90 ; Try to modify the program to show this
+  126  90  60   0 ; pattern in addition to the normal one
+  0b01010101
 </textarea>
     <br/>
 </td><td style="vertical-align:top">
