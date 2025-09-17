@@ -427,6 +427,8 @@ function consumeScope(parser) {
                 makeError(parser, ".data scope has invalid address, must be between 0 and 31.");
                 parser.memory_address = 0;
             }
+            consumeWhitespace(parser);
+            consumeComment(parser);
         }
         return true;
     } else if (consume(parser, ".inst")) {
