@@ -6,7 +6,7 @@ Website:
 
 Emulator:
 [ ] Add "instructions executed" stat
-[ ] Make initial memory part of the program text so it can be copied and pasted
+[x] Make initial memory part of the program text so it can be copied and pasted
 [ ] Allow seeks to specify two labels from memory, and seek the difference between them
 [ ] Add a selector to load example programs
 [ ] Add more example programs
