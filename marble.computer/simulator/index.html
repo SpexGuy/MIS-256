@@ -10,104 +10,101 @@
     <h3>Program</h3>
     <button type="button" id="src-assemble" onclick="btnAssembleProgram()">Assemble</button>
     <button type="button" id="src-load" onclick="btnLoadProgram()">Load</button>
+    <a style="float:right" href="https://docs.google.com/document/d/13Yj0rKC1dEsnEunU6P8RiiQldJ57h1FJNhHf_TIgO1Q" target="_blank">Programming Guide</a>
     <br/>
     <p id="src-errors"></p>
-    <textarea id="src-program" rows="32" cols="48" autocapitalize="off" autocomplete="off" autocorrect="off" placeholder="// your program here" spellcheck="false" wrap="off"></textarea>
-    <br/>
-    <a href="https://docs.google.com/document/d/13Yj0rKC1dEsnEunU6P8RiiQldJ57h1FJNhHf_TIgO1Q" target="_blank">Programming Guide</a>
-    
-</td><td style="vertical-align:top">
-    <h3>Initial Memory</h3>
-    <table>
-        <tr>
-            <th>Address</th>
-            <th>Value</th>
-        </tr>
-        <tr><td class="mem-address">0</td><td><input type="text" id="src-mem-0" value="0x00"></td></tr>
-        <tr><td class="mem-address">1</td><td><input type="text" id="src-mem-1" value="0x00"></td></tr>
-        <tr><td class="mem-address">2</td><td><input type="text" id="src-mem-2" value="0x00"></td></tr>
-        <tr><td class="mem-address">3</td><td><input type="text" id="src-mem-3" value="0x00"></td></tr>
-        <tr><td class="mem-address">4</td><td><input type="text" id="src-mem-4" value="0x00"></td></tr>
-        <tr><td class="mem-address">5</td><td><input type="text" id="src-mem-5" value="0x00"></td></tr>
-        <tr><td class="mem-address">6</td><td><input type="text" id="src-mem-6" value="0x00"></td></tr>
-        <tr><td class="mem-address">7</td><td><input type="text" id="src-mem-7" value="0x00"></td></tr>
-        <tr><td class="mem-address">8</td><td><input type="text" id="src-mem-8" value="0x00"></td></tr>
-        <tr><td class="mem-address">9</td><td><input type="text" id="src-mem-9" value="0x00"></td></tr>
-        <tr><td class="mem-address">10</td><td><input type="text" id="src-mem-10" value="0x00"></td></tr>
-        <tr><td class="mem-address">11</td><td><input type="text" id="src-mem-11" value="0x00"></td></tr>
-        <tr><td class="mem-address">12</td><td><input type="text" id="src-mem-12" value="0x00"></td></tr>
-        <tr><td class="mem-address">13</td><td><input type="text" id="src-mem-13" value="0x00"></td></tr>
-        <tr><td class="mem-address">14</td><td><input type="text" id="src-mem-14" value="0x00"></td></tr>
-        <tr><td class="mem-address">15</td><td><input type="text" id="src-mem-15" value="0x00"></td></tr>
-        <tr><td class="mem-address">16</td><td><input type="text" id="src-mem-16" value="0x00"></td></tr>
-        <tr><td class="mem-address">17</td><td><input type="text" id="src-mem-17" value="0x00"></td></tr>
-        <tr><td class="mem-address">18</td><td><input type="text" id="src-mem-18" value="0x00"></td></tr>
-        <tr><td class="mem-address">19</td><td><input type="text" id="src-mem-19" value="0x00"></td></tr>
-        <tr><td class="mem-address">20</td><td><input type="text" id="src-mem-20" value="0x00"></td></tr>
-        <tr><td class="mem-address">21</td><td><input type="text" id="src-mem-21" value="0x00"></td></tr>
-        <tr><td class="mem-address">22</td><td><input type="text" id="src-mem-22" value="0x00"></td></tr>
-        <tr><td class="mem-address">23</td><td><input type="text" id="src-mem-23" value="0x00"></td></tr>
-        <tr><td class="mem-address">24</td><td><input type="text" id="src-mem-24" value="0x00"></td></tr>
-        <tr><td class="mem-address">25</td><td><input type="text" id="src-mem-25" value="0x00"></td></tr>
-        <tr><td class="mem-address">26</td><td><input type="text" id="src-mem-26" value="0x00"></td></tr>
-        <tr><td class="mem-address">27</td><td><input type="text" id="src-mem-27" value="0x00"></td></tr>
-        <tr><td class="mem-address">28</td><td><input type="text" id="src-mem-28" value="0x00"></td></tr>
-        <tr><td class="mem-address">29</td><td><input type="text" id="src-mem-29" value="0x00"></td></tr>
-        <tr><td class="mem-address">30</td><td><input type="text" id="src-mem-30" value="0x00"></td></tr>
-        <tr><td class="mem-address">31</td><td><input type="text" id="src-mem-31" value="0x00"></td></tr>
-    </table>
+    <textarea id="src-program" rows="44" cols="60" autocapitalize="off" autocomplete="off" autocorrect="off" placeholder="// your program here" spellcheck="false" wrap="off">//
+// Welcome to the MIS-256 Emulator!
+//
+// Click "Load" to load this program into the machine,
+// or "Assemble" to check the program for errors.
+//
+// Once loaded, click "Step" to perform one instruction or
+// "Run" to start the program.
+//
+// The emulator defaults to 10x real time speed.
+// Modify the "Speed" value to run it faster or slower.
+//
+// You can set breakpoints by clicking on instructions
+// in the machine display. You can also click on memory
+// addresses to break when they are written.
+//
+// This website doesn't support saving or loading yet,
+// so be sure to save your work in an external text editor!
+//
 
-    </td>
-    <td style="vertical-align:top">
+// This example program shows a frame of a marble,
+// and then a checkerboard pattern.
+
+.data ; Lay out the data for a frame
+FrameData:
+  0b00011000 ; bottom row
+  0b01111110
+  0b01111110
+  0b11111111
+  0b11011111
+  0b01001110
+  0b01111110
+  0b00011000 ; top row
+
+.inst ; Now the instructions to render it
+MemFrame:
+  ZERO    ; Zero the register
+  OR      ; Or with the value in memory to load
+  DISPLAY ; Send it to the screen
+  ZERO.I  ; Zero again, and increment data ptr
+  OR      ; Load the next row
+  DISPLAY ; Repeat for 8 rows...
+  ZERO.I
+  OR
+  DISPLAY
+  ZERO.I
+  OR
+  DISPLAY
+  ZERO.I
+  OR
+  DISPLAY
+  ZERO.I
+  OR
+  DISPLAY
+  ZERO.I
+  OR
+  DISPLAY
+  ZERO.I
+  OR.I    ; Increment one last time to point
+  DISPLAY ;   after the frame data
+
+.data     ; More data for a checkerboard
+Checker: 0b10101010
+
+.inst     ; We can compute this one
+CheckerBoard:
+  ZERO    ; Load Checker
+  OR
+CheckerLoop:
+  DISPLAY       ; Display sets the condition
+  BRANCH :Reset ;   when it completes a frame
+  NOT           ; Every row inverts the previous
+  JUMP :CheckerLoop
+
+Reset:
+  SEEK -8        ; Reset data ptr to 0
+  JUMP :MemFrame ; Restart
+</textarea>
+    <br/>
+</td><td style="vertical-align:top">
         <h3>Running State</h3>
         <button type="button" id="ctrl-reset" onclick="btnReset()">Reset</button><button type="button" id="ctrl-step" onclick="btnStep()">Step</button><button type="button" id="ctrl-pause" onclick="btnPause()">Pause</button><button type="button" id="ctrl-run" onclick="btnRun()">Run</button><button type="button" id="ctrl-nextframe" onclick="btnNextFrame()">Run to Frame</button><button type="button" id="ctrl-nextdisplay" onclick="btnNextDisplay()">Run to Display</button>
-        Speed <input type="number" id="ctrl-speed" value="10">
+        Speed <input type="number" id="ctrl-speed" value="10"> <button type="button" id="ctrl-turbo">Turbo</button>
         <br/>
         <b>State:</b> <span id="ctrl-state">Waiting for Program</span><br/>
-        <table><tr><th>Program:</th><th>Memory:</th><th>Other State:</th></tr>
-        <tr>
-        <td style="vertical-align:top"><table id="ctrl-program"><tr><td>// no program loaded</td></tr></table></td>
-        <td style="vertical-align:top"><table id="ctrl-memory">
-            <tr id="ctrl-mem-row-0" ><td class="mem-address">0</td ><td id="ctrl-mem-0" >0</td></tr>
-            <tr id="ctrl-mem-row-1" ><td class="mem-address">1</td ><td id="ctrl-mem-1" >0</td></tr>
-            <tr id="ctrl-mem-row-2" ><td class="mem-address">2</td ><td id="ctrl-mem-2" >0</td></tr>
-            <tr id="ctrl-mem-row-3" ><td class="mem-address">3</td ><td id="ctrl-mem-3" >0</td></tr>
-            <tr id="ctrl-mem-row-4" ><td class="mem-address">4</td ><td id="ctrl-mem-4" >0</td></tr>
-            <tr id="ctrl-mem-row-5" ><td class="mem-address">5</td ><td id="ctrl-mem-5" >0</td></tr>
-            <tr id="ctrl-mem-row-6" ><td class="mem-address">6</td ><td id="ctrl-mem-6" >0</td></tr>
-            <tr id="ctrl-mem-row-7" ><td class="mem-address">7</td ><td id="ctrl-mem-7" >0</td></tr>
-            <tr id="ctrl-mem-row-8" ><td class="mem-address">8</td ><td id="ctrl-mem-8" >0</td></tr>
-            <tr id="ctrl-mem-row-9" ><td class="mem-address">9</td ><td id="ctrl-mem-9" >0</td></tr>
-            <tr id="ctrl-mem-row-10"><td class="mem-address">10</td><td id="ctrl-mem-10">0</td></tr>
-            <tr id="ctrl-mem-row-11"><td class="mem-address">11</td><td id="ctrl-mem-11">0</td></tr>
-            <tr id="ctrl-mem-row-12"><td class="mem-address">12</td><td id="ctrl-mem-12">0</td></tr>
-            <tr id="ctrl-mem-row-13"><td class="mem-address">13</td><td id="ctrl-mem-13">0</td></tr>
-            <tr id="ctrl-mem-row-14"><td class="mem-address">14</td><td id="ctrl-mem-14">0</td></tr>
-            <tr id="ctrl-mem-row-15"><td class="mem-address">15</td><td id="ctrl-mem-15">0</td></tr>
-            <tr id="ctrl-mem-row-16"><td class="mem-address">16</td><td id="ctrl-mem-16">0</td></tr>
-            <tr id="ctrl-mem-row-17"><td class="mem-address">17</td><td id="ctrl-mem-17">0</td></tr>
-            <tr id="ctrl-mem-row-18"><td class="mem-address">18</td><td id="ctrl-mem-18">0</td></tr>
-            <tr id="ctrl-mem-row-19"><td class="mem-address">19</td><td id="ctrl-mem-19">0</td></tr>
-            <tr id="ctrl-mem-row-20"><td class="mem-address">20</td><td id="ctrl-mem-20">0</td></tr>
-            <tr id="ctrl-mem-row-21"><td class="mem-address">21</td><td id="ctrl-mem-21">0</td></tr>
-            <tr id="ctrl-mem-row-22"><td class="mem-address">22</td><td id="ctrl-mem-22">0</td></tr>
-            <tr id="ctrl-mem-row-23"><td class="mem-address">23</td><td id="ctrl-mem-23">0</td></tr>
-            <tr id="ctrl-mem-row-24"><td class="mem-address">24</td><td id="ctrl-mem-24">0</td></tr>
-            <tr id="ctrl-mem-row-25"><td class="mem-address">25</td><td id="ctrl-mem-25">0</td></tr>
-            <tr id="ctrl-mem-row-26"><td class="mem-address">26</td><td id="ctrl-mem-26">0</td></tr>
-            <tr id="ctrl-mem-row-27"><td class="mem-address">27</td><td id="ctrl-mem-27">0</td></tr>
-            <tr id="ctrl-mem-row-28"><td class="mem-address">28</td><td id="ctrl-mem-28">0</td></tr>
-            <tr id="ctrl-mem-row-29"><td class="mem-address">29</td><td id="ctrl-mem-29">0</td></tr>
-            <tr id="ctrl-mem-row-30"><td class="mem-address">30</td><td id="ctrl-mem-30">0</td></tr>
-            <tr id="ctrl-mem-row-31"><td class="mem-address">31</td><td id="ctrl-mem-31">0</td></tr>
-            </table></td>
-        <td style="vertical-align:top"><table>
+        <table class="nopad"><tr><td><table>
             <tr><th>Register: </th><td id="ctrl-register">0x00&nbsp;0b00000000&nbsp;&nbsp;&nbsp;0&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;</td></tr>
             <tr><th>Condition: </th><td id="ctrl-condition">false</td></tr>
             <tr><th>Data Ptr: </th><td id="ctrl-dataptr">0</td></tr>
             <tr><th>Inst Ptr: </th><td id="ctrl-instptr">0</td></tr>
             <tr><th>Uptime: </th><td id="exec-uptime">00.0</td></tr>
-            <tr><th colspan="2">Execution</th></tr>
+            <tr><th colspan="2">Execution:</th></tr>
             <tr><td colspan="2">
                 <div id="exec-step-0" class="exec-background disabled"><div class="exec-progress"></div><div class="exec-label">Fetch Data</div></div>
                 <div id="exec-step-1" class="exec-background disabled"><div class="exec-progress"></div><div class="exec-label">Decode Instruction</div></div>
@@ -130,9 +127,44 @@
             </svg></td></tr>
             <tr><th colspan="2">Previous Screens:</th></tr>
             <tr><td colspan="2" id="screen-history"></td></tr>
-        </table></td>
-        </tr></table>
-
+        </table></td><td><table><tr><th>Program:</th><th>Memory:</th></tr>
+        <tr>
+        <td style="vertical-align:top"><table id="ctrl-program"><tr><td>// no program loaded</td></tr></table></td>
+        <td style="vertical-align:top"><table id="ctrl-memory">
+            <tr id="ctrl-mem-row-0" ><td class="mem-address">0</td ><td id="ctrl-mem-labels-0" ></td><td id="ctrl-mem-0" >0</td></tr>
+            <tr id="ctrl-mem-row-1" ><td class="mem-address">1</td ><td id="ctrl-mem-labels-1" ></td><td id="ctrl-mem-1" >0</td></tr>
+            <tr id="ctrl-mem-row-2" ><td class="mem-address">2</td ><td id="ctrl-mem-labels-2" ></td><td id="ctrl-mem-2" >0</td></tr>
+            <tr id="ctrl-mem-row-3" ><td class="mem-address">3</td ><td id="ctrl-mem-labels-3" ></td><td id="ctrl-mem-3" >0</td></tr>
+            <tr id="ctrl-mem-row-4" ><td class="mem-address">4</td ><td id="ctrl-mem-labels-4" ></td><td id="ctrl-mem-4" >0</td></tr>
+            <tr id="ctrl-mem-row-5" ><td class="mem-address">5</td ><td id="ctrl-mem-labels-5" ></td><td id="ctrl-mem-5" >0</td></tr>
+            <tr id="ctrl-mem-row-6" ><td class="mem-address">6</td ><td id="ctrl-mem-labels-6" ></td><td id="ctrl-mem-6" >0</td></tr>
+            <tr id="ctrl-mem-row-7" ><td class="mem-address">7</td ><td id="ctrl-mem-labels-7" ></td><td id="ctrl-mem-7" >0</td></tr>
+            <tr id="ctrl-mem-row-8" ><td class="mem-address">8</td ><td id="ctrl-mem-labels-8" ></td><td id="ctrl-mem-8" >0</td></tr>
+            <tr id="ctrl-mem-row-9" ><td class="mem-address">9</td ><td id="ctrl-mem-labels-9" ></td><td id="ctrl-mem-9" >0</td></tr>
+            <tr id="ctrl-mem-row-10"><td class="mem-address">10</td><td id="ctrl-mem-labels-10"></td><td id="ctrl-mem-10">0</td></tr>
+            <tr id="ctrl-mem-row-11"><td class="mem-address">11</td><td id="ctrl-mem-labels-11"></td><td id="ctrl-mem-11">0</td></tr>
+            <tr id="ctrl-mem-row-12"><td class="mem-address">12</td><td id="ctrl-mem-labels-12"></td><td id="ctrl-mem-12">0</td></tr>
+            <tr id="ctrl-mem-row-13"><td class="mem-address">13</td><td id="ctrl-mem-labels-13"></td><td id="ctrl-mem-13">0</td></tr>
+            <tr id="ctrl-mem-row-14"><td class="mem-address">14</td><td id="ctrl-mem-labels-14"></td><td id="ctrl-mem-14">0</td></tr>
+            <tr id="ctrl-mem-row-15"><td class="mem-address">15</td><td id="ctrl-mem-labels-15"></td><td id="ctrl-mem-15">0</td></tr>
+            <tr id="ctrl-mem-row-16"><td class="mem-address">16</td><td id="ctrl-mem-labels-16"></td><td id="ctrl-mem-16">0</td></tr>
+            <tr id="ctrl-mem-row-17"><td class="mem-address">17</td><td id="ctrl-mem-labels-17"></td><td id="ctrl-mem-17">0</td></tr>
+            <tr id="ctrl-mem-row-18"><td class="mem-address">18</td><td id="ctrl-mem-labels-18"></td><td id="ctrl-mem-18">0</td></tr>
+            <tr id="ctrl-mem-row-19"><td class="mem-address">19</td><td id="ctrl-mem-labels-19"></td><td id="ctrl-mem-19">0</td></tr>
+            <tr id="ctrl-mem-row-20"><td class="mem-address">20</td><td id="ctrl-mem-labels-20"></td><td id="ctrl-mem-20">0</td></tr>
+            <tr id="ctrl-mem-row-21"><td class="mem-address">21</td><td id="ctrl-mem-labels-21"></td><td id="ctrl-mem-21">0</td></tr>
+            <tr id="ctrl-mem-row-22"><td class="mem-address">22</td><td id="ctrl-mem-labels-22"></td><td id="ctrl-mem-22">0</td></tr>
+            <tr id="ctrl-mem-row-23"><td class="mem-address">23</td><td id="ctrl-mem-labels-23"></td><td id="ctrl-mem-23">0</td></tr>
+            <tr id="ctrl-mem-row-24"><td class="mem-address">24</td><td id="ctrl-mem-labels-24"></td><td id="ctrl-mem-24">0</td></tr>
+            <tr id="ctrl-mem-row-25"><td class="mem-address">25</td><td id="ctrl-mem-labels-25"></td><td id="ctrl-mem-25">0</td></tr>
+            <tr id="ctrl-mem-row-26"><td class="mem-address">26</td><td id="ctrl-mem-labels-26"></td><td id="ctrl-mem-26">0</td></tr>
+            <tr id="ctrl-mem-row-27"><td class="mem-address">27</td><td id="ctrl-mem-labels-27"></td><td id="ctrl-mem-27">0</td></tr>
+            <tr id="ctrl-mem-row-28"><td class="mem-address">28</td><td id="ctrl-mem-labels-28"></td><td id="ctrl-mem-28">0</td></tr>
+            <tr id="ctrl-mem-row-29"><td class="mem-address">29</td><td id="ctrl-mem-labels-29"></td><td id="ctrl-mem-29">0</td></tr>
+            <tr id="ctrl-mem-row-30"><td class="mem-address">30</td><td id="ctrl-mem-labels-30"></td><td id="ctrl-mem-30">0</td></tr>
+            <tr id="ctrl-mem-row-31"><td class="mem-address">31</td><td id="ctrl-mem-labels-31"></td><td id="ctrl-mem-31">0</td></tr>
+            </table></td>
+        </tr></table></td></tr></table>
     </td>
     </tr></table>
     <script src="sim.js"></script>

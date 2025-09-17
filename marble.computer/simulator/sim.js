@@ -56,6 +56,13 @@ var screen = [];
 var screen_buffer = [];
 var complete_screens = [];
 
+var initial_memory = [
+    0, 0, 0, 0, 0, 0, 0, 0,
+    0, 0, 0, 0, 0, 0, 0, 0,
+    0, 0, 0, 0, 0, 0, 0, 0,
+    0, 0, 0, 0, 0, 0, 0, 0,
+];
+
 var state = "Waiting for Program";
 
 const NOT_RUNNING = 0;
@@ -89,6 +96,7 @@ const step_durations = [
 
 var time_into_instruction = 0;
 var total_time_elapsed = 0;
+var turbo_enabled = false;
 
 function determineSteps(instruction) {
     var steps = STEP_FETCH_DATA | STEP_DECODE_INSTRUCTION;
@@ -125,6 +133,16 @@ function determineInstTime(instruction) {
     return time;
 }
 
+
+
+
+// ----------------------------------------------------------
+// Parsing
+// ----------------------------------------------------------
+
+const PARSE_SCOPE_INST = 0;
+const PARSE_SCOPE_DATA = 1;
+
 function makeParser(code) {
     return {
         line_num: 0,
@@ -132,10 +150,26 @@ function makeParser(code) {
         lines: code.split("\n"),
         errors: [],
 
+        scope: PARSE_SCOPE_INST,
         instructions: [], // [integer representation of instruction]
         instruction_lines: [], // [source line num for each instruction]
         labels: {}, // {lowercase_label : {line_num, inst, cased_label}
         patches: [], // { inst: integer, target_label: str }
+
+        memory: [ // actual memory values
+            0,0,0,0,0,0,0,0,
+            0,0,0,0,0,0,0,0,
+            0,0,0,0,0,0,0,0,
+            0,0,0,0,0,0,0,0,
+        ],
+        memory_src: [
+            null,null,null,null,null,null,null,null,
+            null,null,null,null,null,null,null,null,
+            null,null,null,null,null,null,null,null,
+            null,null,null,null,null,null,null,null,
+        ], // null | {line_num, line_pos}
+        memory_labels: {}, // {lowercase_label : {line_num, address, cased_label}
+        memory_address: 0, // next address to write in memory
     };
 }
 
@@ -169,7 +203,7 @@ function consume(parser, str) {
 function makeError(parser, error_str) {
     parser.errors.push({
         error: error_str,
-        line_num: parser.line_num + 1,
+        line_num: parser.line_num,
         line_pos: parser.line_pos,
     });
 }
@@ -260,17 +294,23 @@ function consumeLabelDecl(parser) {
         return;
     }
 
+    const labels = (parser.scope == PARSE_SCOPE_INST) ? parser.labels : parser.memory_labels;
+
     const key = label.toLowerCase();
-    if (key in parser.labels) {
-        const orig = parser.labels[key];
+    if (key in labels) {
+        const orig = labels[key];
         const case_note = (orig.cased_label != label) ? " Note: labels are case-insensitive." : "";
         makeError(parser, "Duplicate label '"+label+"'. Original is on line "+orig.line_num+"."+case_note);
     } else {
-        parser.labels[key] = {
+        labels[key] = {
             cased_label: label,
             line_num: parser.line_num,
-            inst: parser.instructions.length,
         };
+        if (parser.scope == PARSE_SCOPE_INST) {
+            labels[key].inst = parser.instructions.length;
+        } else {
+            labels[key].address = parser.memory_address;
+        }
     }
 }
 
@@ -376,6 +416,51 @@ function consumeComment(parser) {
     }
 }
 
+function consumeScope(parser) {
+    if (consume(parser, ".data")) {
+        parser.scope = PARSE_SCOPE_DATA;
+        consumeWhitespace(parser);
+        consumeComment(parser);
+        if (parser.line_pos < parser.lines[parser.line_num].length) {
+            parser.memory_address = parseNumber(parser);
+            if (parser.memory_address < 0 || parser.memory_address > 31) {
+                makeError(parser, ".data scope has invalid address, must be between 0 and 31.");
+                parser.memory_address = 0;
+            }
+        }
+        return true;
+    } else if (consume(parser, ".inst")) {
+        parser.scope = PARSE_SCOPE_INST;
+        consumeWhitespace(parser);
+        consumeComment(parser);
+        return true;
+    }
+    return false;
+}
+
+function parseMemoryValue(parser) {
+    const pos = parser.line_pos;
+    var value = parseNumber(parser);
+    if (value < -255 || value > 255) {
+        makeError(parser, "Memory value "+value+" cannot be represented in 8 bits!");
+    }
+    value = value & 0xFF;
+    const prev_src = parser.memory_src[parser.memory_address];
+    if (prev_src) {
+        makeError(parser, "Memory address "+parser.memory_address+" was specified twice! First at "+(prev_src.line_num+1)+":"+(prev_src.line_pos+1)+".");
+    } else {
+        parser.memory_src[parser.memory_address] = {
+            line_num: parser.line_num,
+            line_pos: pos,
+        };
+        parser.memory[parser.memory_address] = value;
+    }
+    parser.memory_address += 1;
+    if (parser.memory_address >= 32) {
+        parser.memory_address = 0;
+    }
+}
+
 function applyLabelPatches(parser) {
     for (const patch of parser.patches) {
         const label_key = patch.target_label.toLowerCase();
@@ -411,11 +496,23 @@ function parseProgram(parser) {
         parser.line_pos = 0;
 
         consumeWhitespace(parser);
-        consumeLabelDecl(parser);
-        consumeWhitespace(parser);
-        consumeInstruction(parser);
-        consumeWhitespace(parser);
-        consumeComment(parser);
+
+        if (!consumeScope(parser)) {
+            consumeLabelDecl(parser);
+            if (parser.scope == PARSE_SCOPE_INST) {
+                consumeWhitespace(parser);
+                consumeInstruction(parser);
+                consumeWhitespace(parser);
+                consumeComment(parser);
+            } else if (parser.scope == PARSE_SCOPE_DATA) {
+                while (true) {
+                    consumeWhitespace(parser);
+                    consumeComment(parser);
+                    if (parser.line_pos >= parser.lines[parser.line_num].length) break;
+                    parseMemoryValue(parser);
+                }
+            }
+        }
 
         if (parser.line_pos < parser.lines[parser.line_num].length) {
             makeError(parser, "Unexpected extra arguments");
@@ -431,6 +528,9 @@ function parseProgram(parser) {
 
     fillInstructions(parser);
 }
+
+
+
 
 function execInst() {
     const inst = mem[BANK_INST][mem_ptr[BANK_INST]];
@@ -652,6 +752,7 @@ function runStep() {
 
     var speed = Number(document.getElementById("ctrl-speed").value);
     if (typeof speed !== "number" || isNaN(speed)) speed = 1;
+    if (turbo_enabled) speed *= 100;
     speed = Math.min(Math.max(speed, 1), 10000);
 
     const elapsed_time = speed * delta_ms / 1000;
@@ -763,24 +864,6 @@ function btnPause() {
     }
 }
 
-function loadInitialMemoryFromInputs() {
-    for (let i = 0; i < 32; i++) {
-        const input = document.getElementById("src-mem-" + i);
-        if (input) {
-            let val = input.value.trim();
-            // hex
-            if (val.startsWith("0x") || val.startsWith("0X")) {
-                mem[BANK_DATA][i] = parseInt(val, 16) & 0xFF;
-            }
-            else { // decimal
-                mem[BANK_DATA][i] = parseInt(val, 10) & 0xFF;
-            }
-        } else {
-            mem[BANK_DATA][i] = 0;
-        }
-    }
-}
-
 function btnReset() {
     if (!has_valid_program) return;
 
@@ -793,7 +876,9 @@ function btnReset() {
     condition = false;
     mem_ptr = [0, 0];
 
-    loadInitialMemoryFromInputs();
+    for (let i = 0; i < 32; i++) {
+        mem[BANK_DATA][i] = initial_memory[i];
+    }
 
     complete_screens = [];
     screen_buffer = [];
@@ -832,7 +917,7 @@ function assembleProgramAndShowErrors() {
         for (const err of parser.errors) {
             if (err.line_num != -1) {
                 const line = document.createElement("div");
-                line.textContent = err.line_num+":"+err.line_pos+" "+err.error;
+                line.textContent = (err.line_num+1)+":"+(err.line_pos+1)+" "+err.error;
                 errors.appendChild(line);
             }
         }
@@ -844,6 +929,8 @@ function assembleProgramAndShowErrors() {
         instructions: parser.instructions,
         instruction_lines: parser.instruction_lines,
         labels: parser.labels,
+        memory: parser.memory,
+        memory_labels: parser.memory_labels,
     };
 }
 
@@ -915,8 +1002,18 @@ function btnLoadProgram() {
             document.getElementById("ctrl-inst-labels-"+label.inst.toString()).append(label.cased_label+":")
         }
 
+        for (var i = 0; i < 32; i += 1) {
+            document.getElementById("ctrl-mem-labels-"+i.toString()).innerHTML = "";
+        }
+
+        for (const label_key in result.memory_labels) {
+            const label = result.memory_labels[label_key];
+            document.getElementById("ctrl-mem-labels-"+label.address.toString()).append(label.cased_label+":")
+        }
+
         instruction_lines = result.instruction_lines;
-        mem[0] = result.instructions;
+        mem[BANK_INST] = result.instructions;
+        initial_memory = result.memory;
         has_valid_program = true;
 
         btnReset();
@@ -924,17 +1021,8 @@ function btnLoadProgram() {
 }
 
 document.addEventListener("DOMContentLoaded", function() {
-    // When a mem input is focused, select it for replacement
     {
-        var index = 0;
-        while (index < 32) {
-            {
-                const mem_input = document.getElementById("src-mem-"+index);
-                mem_input.onfocus = () => {
-                    mem_input.select();
-                };
-            }
-
+        for (var index = 0; index < 32; index += 1) {
             {
                 const mem_display = document.getElementById("ctrl-mem-row-"+index);
                 const capture_idx = index;
@@ -942,28 +1030,12 @@ document.addEventListener("DOMContentLoaded", function() {
                     btnToggleMemBreakpoint(capture_idx, mem_display);
                 };
             }
-
-            index += 1;
         }
     }
 
-    // tab on src-mem-31 goes back to src-mem-0
-    // shift+tab on src-mem-0 goes to src-mem-31
     {
-        const first_mem = document.getElementById("src-mem-0");
-        const last_mem = document.getElementById("src-mem-31");
-
-        last_mem.addEventListener("keydown", function(e) {
-            if (e.key === "Tab" && !e.shiftKey) {
-                e.preventDefault(); // don't change focus normally
-                first_mem.focus(); // focus src-mem-0 instead
-            }
-        });
-        first_mem.addEventListener("keydown", function(e) {
-            if (e.key === "Tab" && e.shiftKey) {
-                e.preventDefault(); // don't change focus normally
-                last_mem.focus(); // focus src-mem-31 instead
-            }
-        });
+        window.addEventListener('mouseup', () => { turbo_enabled = false; });
+        document.getElementById("ctrl-turbo").addEventListener('mouseup', () => { turbo_enabled = false; });
+        document.getElementById("ctrl-turbo").addEventListener('mousedown', () => { turbo_enabled = true; });
     }
 });
