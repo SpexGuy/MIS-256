@@ -15,12 +15,12 @@ const INST_REG_PLANE_READ = 0x30;
 const INST_REG_PLANE_TOGGLE = 0x20;
 const INST_REG_PLANE_SET = 0x10;
 const INST_REG_PLANE_UNSET = 0x00;
+const INST_REG_SHIFT_MASK = 0x06;
+const INST_REG_SHIFT_SHIFT = 1;
 
 const INST_REG_READ_DEST_MASK = 0x08;
 const INST_REG_READ_DEST_MEM = 0x08;
 const INST_REG_READ_DEST_DISP = 0x00;
-const INST_REG_READ_SHIFT_MASK = 0x06;
-const INST_REG_READ_SHIFT_SHIFT = 1;
 const INST_REG_TOGGLE_CARRY_MASK = 0x08;
 
 const INST_CTRL_BANK_MASK = 0x40;
@@ -363,7 +363,7 @@ function consumeInstruction(parser) {
                     const shift_amt = parsePositiveNumberWithBase(parser, 10);
                     if (parser.line_pos != after_shr_pos) {
                         makeError(parser, "Invalid modifier '"+modifier+"'");
-                    } else if ((inst & (INST_TYPE_MASK | INST_REG_PLANE_MASK)) != (INST_TYPE_REG | INST_REG_PLANE_READ)) {
+                    } else if ((inst & INST_TYPE_MASK) != INST_TYPE_REG) {
                         makeError(parser, "Instruction '"+word+"' can't use modifier ."+modifier);
                     } else if (shift_amt < 0 || shift_amt > 3) {
                         makeError(parser, ".SHR modifier can only shift 0-3 bits");
@@ -371,7 +371,7 @@ function consumeInstruction(parser) {
                     } else if (has_shr) {
                         makeError(parser, "Duplicate modifier ."+modifier.substring(0, 3));
                     } else {
-                        inst |= (shift_amt << INST_REG_READ_SHIFT_SHIFT);
+                        inst |= (shift_amt << INST_REG_SHIFT_SHIFT);
                         has_shr = true;
                     }
                     parser.line_pos = after_shr_pos;
@@ -539,8 +539,10 @@ function execInst() {
     mem_ptr[BANK_INST] = (mem_ptr[BANK_INST] + 1) % 32;
 
     if (inst & INST_TYPE_MASK) {
-        const operand = (inst & INST_REG_SOURCE_MASK) ? mem[BANK_DATA][mem_ptr[BANK_DATA]] : 0xFF;
+        var operand = (inst & INST_REG_SOURCE_MASK) ? mem[BANK_DATA][mem_ptr[BANK_DATA]] : 0xFF;
         const orig = register;
+        const shift = (inst & INST_REG_SHIFT_MASK) >> INST_REG_SHIFT_SHIFT;
+        operand = operand >> shift;
         switch (inst & INST_REG_PLANE_MASK) {
             case INST_REG_PLANE_UNSET:
                 register &= ~operand;
@@ -561,8 +563,7 @@ function execInst() {
                 }
                 break;
             case INST_REG_PLANE_READ:
-                const shift = (inst & INST_REG_READ_SHIFT_MASK) >> INST_REG_READ_SHIFT_SHIFT;
-                const value = (register & operand) >> shift;
+                const value = (register & operand);
                 if (inst & INST_REG_READ_DEST_MASK) {
                     mem[BANK_DATA][mem_ptr[BANK_DATA]] = value;
                     condition = false;
